@@ -1,51 +1,119 @@
 package com.example.tp_spinner_listview1;
 
-import android.graphics.Color;
+// Keep necessary imports
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView; // Import ListView
+import android.widget.Spinner;
+import android.widget.Toast; // Optional: For user feedback
 
+// Keep your androidx imports
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections; // Needed for emptyList if adding a prompt
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map; // Use Map interface for better practice
+
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener { // Implement the listener
+
+    // --- Member Variables ---
+    // Use interface types (Map, List) where possible
+    Map<String, List<String>> listPaysVille;
+    Spinner paysSpinner;            // Reference to the Spinner
+    ListView villesListView;        // Reference to the ListView
+    ArrayAdapter<String> villesAdapter; // Adapter FOR THE LISTVIEW
+    List<String> currentVillesList;  // Data source for villesAdapter
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+        EdgeToEdge.enable(this); // Keep or remove as needed
         setContentView(R.layout.activity_main);
+
+        // --- Window Insets Handling ---
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        EditText input1 = findViewById(R.id.input1);
-        EditText input2 = findViewById(R.id.input2);
-        Button connect = findViewById(R.id.connect);
 
-        input1.setTextColor(Color.RED);
-        input1.setTextSize(25);
-        input2.setTextColor(Color.RED);
-        input2.setTextSize(25);
+        // --- Initialize Views ---
+        paysSpinner = findViewById(R.id.Pays);         // Find Spinner
+        villesListView = findViewById(R.id.listVille); // <-- FIX: Find ListView HERE
+
+        // --- Prepare Data ---
+        listPaysVille = new HashMap<>(); // Initialize the member variable HashMap
+        // Optional: Add a prompt item
+        listPaysVille.put("-- Sélectionnez un Pays --", Collections.emptyList());
+        listPaysVille.put("France", Arrays.asList("Paris", "Lyon", "Marseille"));
+        listPaysVille.put("Allemagne", Arrays.asList("Berlin", "Munich", "Hamburg"));
+        listPaysVille.put("Espagne", Arrays.asList("Madrid", "Barcelona", "Valencia"));
+        listPaysVille.put("Angleterre", Arrays.asList("London", "Manchester", "Birmingham"));
+
+        // --- Setup Pays (Country) Spinner ---
+        // Create a list from the keyset for the adapter (more flexible)
+        List<String> paysList = new ArrayList<>(listPaysVille.keySet());
+        // Optional: You might want to sort the countries alphabetically
+        // Collections.sort(paysList); // Be careful if you added a prompt, sort after adding it
+
+        ArrayAdapter<String> paysAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item,
+                paysList); // Use the List<String>
+        paysAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        paysSpinner.setAdapter(paysAdapter);
 
 
-        String name = input1.getText().toString();
-        Log.v("name",name);
-        connect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String name = input1.getText().toString();
-                String nombre = input2.getText().toString();
-                Toast.makeText(MainActivity.this, "Bonjour "+name+" "+nombre, Toast.LENGTH_SHORT).show();
-            }
+        currentVillesList = new ArrayList<>();
+
+        villesAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1,
+                currentVillesList);
+        villesListView.setAdapter(villesAdapter);
+
+
+        paysSpinner.setOnItemSelectedListener(this);
+
+        // Optional: Add listener for ListView item clicks
+        villesListView.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedVille = villesAdapter.getItem(position); // Or currentVillesList.get(position);
+            Toast.makeText(MainActivity.this, "Ville sélectionnée: " + selectedVille, Toast.LENGTH_SHORT).show();
         });
+    }
 
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+        if (parent.getId() == R.id.Pays) {
+
+            String selectedPays = parent.getItemAtPosition(position).toString();
+
+            List<String> villes = listPaysVille.get(selectedPays);
+
+
+            currentVillesList.clear(); // Clear the previous list of cities
+            if (villes != null) { // Add the new cities (check for null is good practice)
+                currentVillesList.addAll(villes);
+            }
+            villesAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
+        if (parent.getId() == R.id.Pays) {
+            currentVillesList.clear();
+            villesAdapter.notifyDataSetChanged();
+        }
     }
 }
