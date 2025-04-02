@@ -1,6 +1,7 @@
 package com.example.tp_spinner_listview1;
 
 // Keep necessary imports
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -86,6 +87,25 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         villesListView.setOnItemClickListener((parent, view, position, id) -> {
             String selectedVille = villesAdapter.getItem(position); // Or currentVillesList.get(position);
             Toast.makeText(MainActivity.this, "Ville sélectionnée: " + selectedVille, Toast.LENGTH_SHORT).show();
+        });
+
+        villesListView.setOnItemClickListener((parent, view, position, id) -> {
+            // 1. Get the selected city name from the adapter's data source
+            String selectedVille = currentVillesList.get(position);
+            // String selectedVille = villesAdapter.getItem(position); // Alternative way
+
+            // 2. Create an Intent to launch VilleDetailActivity
+            Intent intent = new Intent(MainActivity.this, VilleDetail.class);
+
+            // 3. Put the selected city name as an "extra" in the Intent
+            //    Use the SAME KEY defined in VilleDetailActivity
+            intent.putExtra(VilleDetail.EXTRA_CITY_NAME, selectedVille);
+
+            // 4. Start the new activity
+            startActivity(intent);
+
+            // Optional: Keep the Toast for feedback during development
+            // Toast.makeText(MainActivity.this, "Ville cliquée: " + selectedVille, Toast.LENGTH_SHORT).show();
         });
     }
 
